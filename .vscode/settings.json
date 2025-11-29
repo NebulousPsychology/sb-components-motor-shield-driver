@@ -1,0 +1,29 @@
+{
+    "editor.formatOnSave": true,
+    // "rust-analyzer.cargo.buildScripts.enable": true,
+    // "rust-analyzer.cfg.setTest": false,
+    // "rust-analyzer.check.invocationStrategy": "per_workspace",
+    // "rust-analyzer.check.workspace": true,
+    "rust-analyzer.check.noDefaultFeatures": true,
+    "rust-analyzer.check.features": [
+        "sbc-pico",
+        "sbc-rpi"
+    ],
+    // "rust-analyzer.check.features": "all",
+    "rust-analyzer.rustfmt.extraArgs": [
+        "--color=never"
+    ],
+    "rust-analyzer.check.targets": [
+        "thumbv6m-none-eabi",
+        "aarch64-unknown-linux-gnu",
+    ],
+    "rust-analyzer.check.allTargets": false,
+    "cSpell.words": [
+        "rustc",
+        "rppal",
+        "thumbv6m",
+        "eabi",
+        "microcontrollers",
+        "Geeekpi"
+    ]
+}
