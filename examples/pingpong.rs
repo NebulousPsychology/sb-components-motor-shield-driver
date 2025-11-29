@@ -18,7 +18,7 @@ use rp_pico::hal::pac;
 // higher-level drivers.
 use rp_pico::hal;
 
-use sbc_motor_shield_driver::*;
+use sb_components_motor_shield_driver::*;
 
 #[entry]
 fn ping_pong() -> ! {

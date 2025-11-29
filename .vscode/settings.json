@@ -1,0 +1,11 @@
+{
+    "editor.formatOnSave": true,
+    // "rust-analyzer.cargo.buildScripts.enable": true,
+    // "rust-analyzer.cfg.setTest": false,
+    // "rust-analyzer.check.invocationStrategy": "per_workspace",
+    // "rust-analyzer.check.workspace": true,
+    "rust-analyzer.rustfmt.extraArgs": [
+        "--color=never"
+    ],
+    "rust-analyzer.check.allTargets": false
+}
