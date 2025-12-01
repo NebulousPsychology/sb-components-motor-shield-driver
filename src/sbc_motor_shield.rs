@@ -215,45 +215,6 @@ pub struct MotorShield<
     pub lights: LightArray<TLightFore, TLightBack, TLightLeft, TLightRight>,
 }
 
-fn init_motors<P1F, P1B, P1E, P2F, P2B, P2E>(
-    p_1f: P1F,
-    p_1b: P1B,
-    p_1e: P1E,
-    p_2f: P2F,
-    p_2b: P2B,
-    p_2e: P2E,
-) -> (
-    motor_driver_hal::MotorDriverWrapper<P1F, P1B, P1E, ()>,
-    motor_driver_hal::MotorDriverWrapper<P2F, P2B, P2E, ()>,
-)
-where
-    P1F: embedded_hal::digital::OutputPin,
-    P1B: embedded_hal::digital::OutputPin,
-    P1E: embedded_hal::pwm::SetDutyCycle,
-    P2F: embedded_hal::digital::OutputPin,
-    P2B: embedded_hal::digital::OutputPin,
-    P2E: embedded_hal::pwm::SetDutyCycle,
-{
-    // IN1[2]+IN2[7]+PWM_EN1[1] -> OUT1[3]+OUT2[6] -> Motor1
-    let m1: motor_driver_hal::MotorDriverWrapper<P1F, P1B, P1E, ()> =
-        motor_driver_hal::MotorDriverBuilder::new()
-            .with_dual_enable(p_1f, p_1b)
-            .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_1e))
-            .with_max_duty(1000)
-            .build();
-    // IN3[10]+IN4[15]+PWM_EN2[9] -> OUT3[11]+OUT4[14] -> Motor2
-    let m2: motor_driver_hal::MotorDriverWrapper<P2F, P2B, P2E, ()> =
-        motor_driver_hal::MotorDriverBuilder::new()
-            .with_dual_enable(p_2f, p_2b)
-            .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_2e))
-            .with_max_duty(1000)
-            .build();
-
-    // let sonic: sensor::ultrasonic::Sonar<_, _>::new(echo_receiver_pin, trigger_pin);
-    // Keep or return m1/m2 if you need them to live beyond this function:
-    return (m1, m2);
-}
-
 impl<
     TIR1,
     TIR2,
@@ -374,28 +335,16 @@ pub struct MotorShieldConfigurationBuilder<
     TLightLeft: digital::OutputPin,
     TLightRight: digital::OutputPin,
 {
-    data: MotorShield<
-        TIR1,
-        TIR2,
-        TSonicEcho,
-        TSonicTrig,
-        TM1F,
-        TM1B,
-        TM1E,
-        TM2F,
-        TM2B,
-        TM2E,
-        TM3F,
-        TM3B,
-        TM3E,
-        TM4F,
-        TM4B,
-        TM4E,
-        TLightFore,
-        TLightBack,
-        TLightLeft,
-        TLightRight,
-    >,
+    pub sensor_ir1: Option<sensor::infrared::SensorIR<TIR1>>,
+    pub sensor_ir2: Option<sensor::infrared::SensorIR<TIR2>>,
+    pub sensor_sonic: Option<sensor::ultrasonic::Sonar<TSonicEcho, TSonicTrig>>,
+    pub motors:
+        Option<MotorArray<TM1F, TM1B, TM1E, TM2F, TM2B, TM2E, TM3F, TM3B, TM3E, TM4F, TM4B, TM4E>>,
+    pub m1: Option<motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, ()>>,
+    pub m2: Option<motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, ()>>,
+    pub m3: Option<motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, ()>>,
+    pub m4: Option<motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, ()>>,
+    pub lights: Option<LightArray<TLightFore, TLightBack, TLightLeft, TLightRight>>,
 }
 
 enum MotorShieldError {
@@ -469,24 +418,50 @@ where
     TLightLeft: digital::OutputPin,
     TLightRight: digital::OutputPin,
 {
-    fn with_motor1(
-        self,
-        p_f: impl digital::OutputPin,
-        p_b: impl digital::OutputPin,
-        p_e: impl pwm::SetDutyCycle,
-    ) -> Self {
-        // todo
-        let m1: motor_driver_hal::MotorDriverWrapper<_, _, _, ()> =
-            motor_driver_hal::MotorDriverBuilder::new()
-                .with_dual_enable(p_f, p_b)
-                .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_e))
-                .with_max_duty(1000)
-                .build();
-        return self;
+    fn create_motor<F, B, E>(
+        p_f: F,
+        p_b: B,
+        p_e: E,
+        duty: Option<u16>,
+    ) -> motor_driver_hal::MotorDriverWrapper<F, B, E, ()>
+    where
+        F: digital::OutputPin,
+        B: digital::OutputPin,
+        E: pwm::SetDutyCycle,
+    {
+        return motor_driver_hal::MotorDriverBuilder::new()
+            .with_dual_enable(p_f, p_b)
+            .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_e))
+            .with_max_duty(duty.unwrap_or_else(|| 1000))
+            .build();
     }
 
-    fn with_pico_pins(self, pins: rp_pico::Pins, pwm_slices: rp_pico::hal::pwm::Slices) -> Self {
-        let (a, b, c, d) = setup_pico_motors(pins, pwm_slices);
+    pub fn with_ir1(mut self, t: TIR1) -> Self {
+        self.sensor_ir1 = Some(sensor::infrared::SensorIR::new(t));
+        self
+    }
+
+    pub fn with_sonic(mut self, trigger: TSonicTrig, echo_receiver: TSonicEcho) -> Self {
+        self.sensor_sonic = Some(sensor::ultrasonic::Sonar::new(trigger, echo_receiver));
+        self
+    }
+    pub fn with_lights(
+        mut self,
+        f: TLightFore,
+        b: TLightBack,
+        l: TLightLeft,
+        r: TLightRight,
+    ) -> Self {
+        self.lights = Some(LightArray {
+            fore: f,
+            back: b,
+            left: l,
+            right: r,
+        });
+        self
+    }
+    pub fn with_motor1(mut self, p_f: TM1F, p_b: TM1B, p_e: TM1E, duty: Option<u16>) -> Self {
+        self.m1 = Some(Self::create_motor(p_f, p_b, p_e, duty));
         return self;
     }
 
@@ -518,7 +493,18 @@ where
         MotorShieldError,
     > {
         // todo!("perform final checks");
-        return Ok(self.data);
+        let data = MotorShield {
+            sensor_ir1: self.sensor_ir1.unwrap(),
+            sensor_ir2: self.sensor_ir2.unwrap(),
+            sensor_sonic: self.sensor_sonic.unwrap(),
+            motors: self.motors.unwrap(),
+            m1: self.m1.unwrap(),
+            m2: self.m2.unwrap(),
+            m3: self.m3.unwrap(),
+            m4: self.m4.unwrap(),
+            lights: self.lights.unwrap(),
+        };
+        return Ok(data);
     }
     fn unused(di: usize) {
         return;
