@@ -16,6 +16,10 @@ use rp_pico::hal::pac;
 // A shorter alias for the Hardware Abstraction Layer, which provides
 // higher-level drivers.
 use rp_pico::hal;
+
+#[cfg(feature = "rp-pico")]
+use sb_components_motor_shield_driver::pico_shield;
+
 mod sbc_motor_shield;
 
 #[entry]
@@ -56,30 +60,35 @@ fn see_doesnt_have_to_be_called_main() -> ! {
     );
 
     // Set the LED to be an output
-    let mut led_pin = pins.led.into_push_pull_output();
-    let mut alt_led_pin = pins.gpio14.into_push_pull_output();
+    // let mut led_pin = pins.led.into_push_pull_output();
+    // let mut alt_led_pin = pins.gpio14.into_push_pull_output();
 
     // Init PWMs
     let pwm_slices: hal::pwm::Slices = hal::pwm::Slices::new(pac.PWM, &mut pac.RESETS);
-    let _m = sbc_motor_shield::motor::MotorL293D::new(
-        pins.gpio0.into_push_pull_output(),
-        pins.gpio1.into_push_pull_output(),
-        pwm_slices.pwm0.channel_a,
-    );
-    let m2 = sbc_motor_shield::motor::MotorL293D::new(
-        pins.gpio2.into_push_pull_output(),
-        pins.gpio3.into_push_pull_output(),
-        pwm_slices.pwm0.channel_b,
-    );
+
+    #[cfg(feature = "rp-pico")]
+    let board: pico_shield::PicoGeeekpiSbcShield = pico_shield::create(pins, pwm_slices).unwrap();
+
+    // #[cfg(feature = "sbc-rpi")]
+    // let _m = sbc_motor_shield::motor::MotorL293D::new(
+    //     pins.gpio0.into_push_pull_output(),
+    //     pins.gpio1.into_push_pull_output(),
+    //     pwm_slices.pwm0.channel_a,
+    // );
+    // let m2 = sbc_motor_shield::motor::MotorL293D::new(
+    //     pins.gpio2.into_push_pull_output(),
+    //     pins.gpio3.into_push_pull_output(),
+    //     pwm_slices.pwm0.channel_b,
+    // );
     //  pins.gpio2.into_push_pull_output(), pins.gpio1.into_push_pull_output(), rp_pico::Gp0Pwm0A.);
 
     loop {
-        led_pin.set_high().unwrap();
-        alt_led_pin.set_low().unwrap();
+        // led_pin.set_high().unwrap();
+        // alt_led_pin.set_low().unwrap();
         delay.delay_ms(500);
 
-        led_pin.set_low().unwrap();
-        alt_led_pin.set_high().unwrap();
+        // led_pin.set_low().unwrap();
+        // alt_led_pin.set_high().unwrap();
         delay.delay_ms(500);
     }
 }
