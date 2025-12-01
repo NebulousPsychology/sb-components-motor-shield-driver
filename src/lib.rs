@@ -102,10 +102,15 @@ pub mod pico_shield {
         >,
         rp_pico::hal::gpio::Pin<
             rp_pico::hal::gpio::bank0::Gpio17,
-            rp_pico::hal::gpio::FunctionSio<rp_pico::hal::gpio::SioOutput>,
+            rp_pico::hal::gpio::FunctionSioOutput,
             rp_pico::hal::gpio::PullDown,
         >,
     >;
+
+    #[deprecated]
+    /// Initialize the sb-components motor shield.
+    /// Mapped according to the geekpi pico-to-rpi-40pin-hat breakout board
+    pub fn create_with_extras(pins: rp_pico::Pins, pwm_slices: rp_pico::hal::pwm::Slices) {}
 
     /// Initialize the sb-components motor shield.
     /// Mapped according to the geekpi pico-to-rpi-40pin-hat breakout board
@@ -113,15 +118,18 @@ pub mod pico_shield {
         pins: rp_pico::Pins,
         pwm_slices: rp_pico::hal::pwm::Slices,
     ) -> Result<PicoGeeekpiSbcShield, sbc_motor_shield::MotorShieldError> {
+        // ? 20+21 (i2c0) | 25 (picoled) | 15+16 (unused, another sio sonar?)
+
         // do pwm configurations <see rp2040-hal::pwm>
         let mut pwm_m1_3b = pwm_slices.pwm3.channel_b;
-        pwm_m1_3b.output_to(pins.gpio7);
         let mut pwm_m2_3a = pwm_slices.pwm3.channel_a;
-        pwm_m2_3a.output_to(pins.gpio22);
         let mut pwm_m3_1b = pwm_slices.pwm1.channel_b;
-        pwm_m3_1b.output_to(pins.gpio3);
         let mut pwm_m4_1a = pwm_slices.pwm1.channel_a;
+        pwm_m1_3b.output_to(pins.gpio7);
+        pwm_m2_3a.output_to(pins.gpio22);
+        pwm_m3_1b.output_to(pins.gpio3);
         pwm_m4_1a.output_to(pins.gpio18);
+        // ? what purpose is the alias rp_pico::Gp7Pwm3B
         /*
         from  <see rp2040-hal::pwm>
         [
@@ -181,7 +189,7 @@ pub mod pico_shield {
                 pwm_m4_1a, // TODO: find gp 18 among slices !also pwm1 {2,3,18,19}: pwm1
                 Some(1000),
             )
-            // .with_i2c(sda:pins.gpio20, scl:pins.gpio21.i2c) // I2C #0
+            // .with_i2c(sda:pins.gpio20, scl:pins.gpio21) // I2C #0
             .build();
         return pico_shield;
     }
