@@ -5,6 +5,7 @@ use embedded_hal::{
     pwm,
 };
 
+#[deprecated]
 pub struct MotorL293D<TFwdPin, TBakPin, TPwmPin>
 where
     TFwdPin: digital::OutputPin,
@@ -18,13 +19,13 @@ where
     /// PWM-capable pin for enable (EN on L293D)
     pub enable: TPwmPin,
 }
-
+#[deprecated]
 pub enum MotorError {
     PwmError,
     PinError(digital::ErrorKind),
     IllegalPercentage(),
 }
-
+#[deprecated]
 pub trait IMotor {
     /// Drive motor forward at given speed (0-100)
     fn forward(&mut self, percent: u8) -> Result<(), MotorError>;
