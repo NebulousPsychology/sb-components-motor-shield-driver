@@ -112,13 +112,49 @@ pub mod pico_shield {
     /// Mapped according to the geekpi pico-to-rpi-40pin-hat breakout board
     pub fn create_with_extras(pins: rp_pico::Pins, pwm_slices: rp_pico::hal::pwm::Slices) {}
 
+    /// pins not used by sb-components motor shield
+    pub struct UnusedPins {
+        pub led: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio25,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        pub gpio20: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio20,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        pub gpio21: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio21,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        pub gpio15: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio15,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        pub gpio16: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio16,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+    }
+
     /// Initialize the sb-components motor shield.
     /// Mapped according to the geekpi pico-to-rpi-40pin-hat breakout board
     pub fn create(
         pins: rp_pico::Pins,
         pwm_slices: rp_pico::hal::pwm::Slices,
-    ) -> Result<PicoGeeekpiSbcShield, sbc_motor_shield::MotorShieldError> {
+    ) -> Result<(PicoGeeekpiSbcShield, UnusedPins), sbc_motor_shield::MotorShieldError> {
         // ? 20+21 (i2c0) | 25 (picoled) | 15+16 (unused, another sio sonar?)
+        let unused = UnusedPins {
+            led: pins.led,
+            gpio15: pins.gpio15,
+            gpio16: pins.gpio16,
+            gpio20: pins.gpio20,
+            gpio21: pins.gpio21,
+        };
 
         // do pwm configurations <see rp2040-hal::pwm>
         let mut pwm_m1_3b = pwm_slices.pwm3.channel_b;
@@ -190,8 +226,8 @@ pub mod pico_shield {
                 Some(1000),
             )
             // .with_i2c(sda:pins.gpio20, scl:pins.gpio21) // I2C #0
-            .build();
-        return pico_shield;
+            .build()?;
+        return Ok((pico_shield, unused));
     }
 }
 
