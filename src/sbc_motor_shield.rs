@@ -6,21 +6,19 @@ mod light;
 pub mod motor;
 mod sensor;
 
-pub struct LightArray<TLightFore, TLightBack, TLightLeft, TLightRight>
-where
+pub struct LightArray<
     TLightFore: digital::OutputPin,
     TLightBack: digital::OutputPin,
     TLightLeft: digital::OutputPin,
     TLightRight: digital::OutputPin,
-{
+> {
     pub fore: TLightFore,
     pub back: TLightBack,
     pub left: TLightLeft,
     pub right: TLightRight,
 }
 
-pub struct MotorArray<TM1F, TM1B, TM1E, TM2F, TM2B, TM2E, TM3F, TM3B, TM3E, TM4F, TM4B, TM4E>
-where
+pub struct MotorArray<
     TM1F: digital::OutputPin,
     TM1B: digital::OutputPin,
     TM1E: pwm::SetDutyCycle,
@@ -33,7 +31,7 @@ where
     TM4F: digital::OutputPin,
     TM4B: digital::OutputPin,
     TM4E: pwm::SetDutyCycle,
-{
+> {
     pub motor1: motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, ()>,
     pub motor2: motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, ()>,
     pub motor3: motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, ()>,
@@ -41,27 +39,6 @@ where
 }
 
 pub struct MotorShield<
-    TIR1,
-    TIR2,
-    TSonicEcho,
-    TSonicTrig,
-    TM1F,
-    TM1B,
-    TM1E,
-    TM2F,
-    TM2B,
-    TM2E,
-    TM3F,
-    TM3B,
-    TM3E,
-    TM4F,
-    TM4B,
-    TM4E,
-    TLightFore,
-    TLightBack,
-    TLightLeft,
-    TLightRight,
-> where
     TIR1: digital::InputPin,
     TIR2: digital::InputPin,
     TSonicEcho: digital::InputPin,
@@ -82,7 +59,7 @@ pub struct MotorShield<
     TLightBack: digital::OutputPin,
     TLightLeft: digital::OutputPin,
     TLightRight: digital::OutputPin,
-{
+> {
     pub sensor_ir1: sensor::infrared::SensorIR<TIR1>,
     pub sensor_ir2: sensor::infrared::SensorIR<TIR2>,
     pub sensor_sonic: sensor::ultrasonic::Sonar<TSonicEcho, TSonicTrig>,
@@ -91,26 +68,28 @@ pub struct MotorShield<
 }
 
 impl<
-    TIR1,
-    TIR2,
-    TSonicEcho,
-    TSonicTrig,
-    TM1F,
-    TM1B,
-    TM1E,
-    TM2F,
-    TM2B,
-    TM2E,
-    TM3F,
-    TM3B,
-    TM3E,
-    TM4F,
-    TM4B,
-    TM4E,
-    TLightFore,
-    TLightBack,
-    TLightLeft,
-    TLightRight,
+    TIR1: digital::InputPin,
+    TIR2: digital::InputPin,
+    TSonicEcho: digital::InputPin,
+    TSonicTrig: digital::OutputPin,
+    // TSonicEcho2: digital::InputPin,
+    // TSonicTrig2: digital::OutputPin,
+    TM1F: digital::OutputPin,
+    TM1B: digital::OutputPin,
+    TM1E: pwm::SetDutyCycle,
+    TM2F: digital::OutputPin,
+    TM2B: digital::OutputPin,
+    TM2E: pwm::SetDutyCycle,
+    TM3F: digital::OutputPin,
+    TM3B: digital::OutputPin,
+    TM3E: pwm::SetDutyCycle,
+    TM4F: digital::OutputPin,
+    TM4B: digital::OutputPin,
+    TM4E: pwm::SetDutyCycle,
+    TLightFore: digital::OutputPin,
+    TLightBack: digital::OutputPin,
+    TLightLeft: digital::OutputPin,
+    TLightRight: digital::OutputPin,
 >
     MotorShield<
         TIR1,
@@ -134,29 +113,6 @@ impl<
         TLightLeft,
         TLightRight,
     >
-where
-    TIR1: digital::InputPin,
-    TIR2: digital::InputPin,
-    TSonicEcho: digital::InputPin,
-    TSonicTrig: digital::OutputPin,
-    // TSonicEcho2: digital::InputPin,
-    // TSonicTrig2: digital::OutputPin,
-    TM1F: digital::OutputPin,
-    TM1B: digital::OutputPin,
-    TM1E: pwm::SetDutyCycle,
-    TM2F: digital::OutputPin,
-    TM2B: digital::OutputPin,
-    TM2E: pwm::SetDutyCycle,
-    TM3F: digital::OutputPin,
-    TM3B: digital::OutputPin,
-    TM3E: pwm::SetDutyCycle,
-    TM4F: digital::OutputPin,
-    TM4B: digital::OutputPin,
-    TM4E: pwm::SetDutyCycle,
-    TLightFore: digital::OutputPin,
-    TLightBack: digital::OutputPin,
-    TLightLeft: digital::OutputPin,
-    TLightRight: digital::OutputPin,
 {
     pub fn new(
         ir1: sensor::infrared::SensorIR<TIR1>,
@@ -177,27 +133,6 @@ where
 }
 
 pub struct MotorShieldConfigurationBuilder<
-    TIR1,
-    TIR2,
-    TSonicEcho,
-    TSonicTrig,
-    TM1F,
-    TM1B,
-    TM1E,
-    TM2F,
-    TM2B,
-    TM2E,
-    TM3F,
-    TM3B,
-    TM3E,
-    TM4F,
-    TM4B,
-    TM4E,
-    TLightFore,
-    TLightBack,
-    TLightLeft,
-    TLightRight,
-> where
     TIR1: digital::InputPin,
     TIR2: digital::InputPin,
     TSonicEcho: digital::InputPin,
@@ -218,7 +153,7 @@ pub struct MotorShieldConfigurationBuilder<
     TLightBack: digital::OutputPin,
     TLightLeft: digital::OutputPin,
     TLightRight: digital::OutputPin,
-{
+> {
     pub sensor_ir1: Option<sensor::infrared::SensorIR<TIR1>>,
     pub sensor_ir2: Option<sensor::infrared::SensorIR<TIR2>>,
     pub sensor_sonic: Option<sensor::ultrasonic::Sonar<TSonicEcho, TSonicTrig>>,
@@ -286,26 +221,26 @@ impl MissingFieldsError {
 }
 
 impl<
-    TIR1,
-    TIR2,
-    TSonicEcho,
-    TSonicTrig,
-    TM1F,
-    TM1B,
-    TM1E,
-    TM2F,
-    TM2B,
-    TM2E,
-    TM3F,
-    TM3B,
-    TM3E,
-    TM4F,
-    TM4B,
-    TM4E,
-    TLightFore,
-    TLightBack,
-    TLightLeft,
-    TLightRight,
+    TIR1: digital::InputPin,
+    TIR2: digital::InputPin,
+    TSonicEcho: digital::InputPin,
+    TSonicTrig: digital::OutputPin,
+    TM1F: digital::OutputPin,
+    TM1B: digital::OutputPin,
+    TM1E: pwm::SetDutyCycle,
+    TM2F: digital::OutputPin,
+    TM2B: digital::OutputPin,
+    TM2E: pwm::SetDutyCycle,
+    TM3F: digital::OutputPin,
+    TM3B: digital::OutputPin,
+    TM3E: pwm::SetDutyCycle,
+    TM4F: digital::OutputPin,
+    TM4B: digital::OutputPin,
+    TM4E: pwm::SetDutyCycle,
+    TLightFore: digital::OutputPin,
+    TLightBack: digital::OutputPin,
+    TLightLeft: digital::OutputPin,
+    TLightRight: digital::OutputPin,
 >
     MotorShieldConfigurationBuilder<
         TIR1,
@@ -329,27 +264,6 @@ impl<
         TLightLeft,
         TLightRight,
     >
-where
-    TIR1: digital::InputPin,
-    TIR2: digital::InputPin,
-    TSonicEcho: digital::InputPin,
-    TSonicTrig: digital::OutputPin,
-    TM1F: digital::OutputPin,
-    TM1B: digital::OutputPin,
-    TM1E: pwm::SetDutyCycle,
-    TM2F: digital::OutputPin,
-    TM2B: digital::OutputPin,
-    TM2E: pwm::SetDutyCycle,
-    TM3F: digital::OutputPin,
-    TM3B: digital::OutputPin,
-    TM3E: pwm::SetDutyCycle,
-    TM4F: digital::OutputPin,
-    TM4B: digital::OutputPin,
-    TM4E: pwm::SetDutyCycle,
-    TLightFore: digital::OutputPin,
-    TLightBack: digital::OutputPin,
-    TLightLeft: digital::OutputPin,
-    TLightRight: digital::OutputPin,
 {
     pub fn new() -> Self {
         Self {
