@@ -231,5 +231,19 @@ pub mod pico_shield {
     }
 }
 
-#[cfg(feature = "sbc-rpi")]
-mod rpi_shield {}
+#[cfg(all(feature = "sbc-rpi", unix))]
+mod rpi_shield {
+    use crate::sbc_motor_shield;
+    use motor_driver_hal::driver::rppal::RppalMotorDriverBuilder;
+    use rppal::{gpio::Gpio, pwm::Channel};
+
+    pub fn create_rpi() -> Result<
+        sbc_motor_shield::MotorShield<_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _>,
+        _,
+    > {
+        let board = sbc_motor_shield::MotorShieldConfigurationBuilder::new()
+            .with_motor1(p_f, p_b, p_e, duty)
+            .build()?;
+        Ok(board)
+    }
+}

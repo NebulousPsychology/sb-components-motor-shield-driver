@@ -620,6 +620,7 @@ dependencies = [
  "panic-halt",
  "paste",
  "rp-pico",
+ "rppal",
 ]
 
 [[package]]

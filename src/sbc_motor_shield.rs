@@ -340,9 +340,32 @@ impl<
         return self;
     }
 
-    pub fn with_motor4(mut self, p_f: TM4F, p_b: TM4B, p_e: TM4E, duty: Option<u16>) -> Self {
-        self.m4 = Some(Self::create_motor(p_f, p_b, p_e, duty));
+    pub fn with_motor4(self, p_f: TM4F, p_b: TM4B, p_e: TM4E, duty: Option<u16>) -> Self {
+        return self.with_motor4_driver(Self::create_motor(p_f, p_b, p_e, duty));
+    }
+
+    /// (allows direct configuration from RppalMotorDriverBuilder)
+    pub fn with_motor4_driver(
+        mut self,
+        driver: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, ()>,
+    ) -> Self {
+        self.m4 = Some(driver);
         return self;
+    }
+
+    /// perform final checks and return a descriptive MissingFields error
+    fn validity(&self) -> Result<(), MotorShieldError> {
+        let mut missing = MissingFieldsError::new();
+        missing.push_if_none(&self.sensor_ir1, "sensor_ir1");
+        missing.push_if_none(&self.sensor_ir2, "sensor_ir2");
+        missing.push_if_none(&self.sensor_sonic, "sonic");
+        missing.push_if_none(&self.lights, "lights");
+
+        missing.push_if_none(&self.m1, "motor 1");
+        missing.push_if_none(&self.m2, "motor 2");
+        missing.push_if_none(&self.m3, "motor 3");
+        missing.push_if_none(&self.m4, "motor 4");
+        missing.check_validity()
     }
 
     pub fn build(
@@ -373,17 +396,7 @@ impl<
         MotorShieldError,
     > {
         // perform final checks and return a descriptive MissingFields error
-        let mut missing = MissingFieldsError::new();
-        missing.push_if_none(&self.sensor_ir1, "sensor_ir1");
-        missing.push_if_none(&self.sensor_ir2, "sensor_ir2");
-        missing.push_if_none(&self.sensor_sonic, "sonic");
-        missing.push_if_none(&self.lights, "lights");
-
-        missing.push_if_none(&self.m1, "motor 1");
-        missing.push_if_none(&self.m2, "motor 2");
-        missing.push_if_none(&self.m3, "motor 3");
-        missing.push_if_none(&self.m4, "motor 4");
-        missing.check_validity()?;
+        self.validity()?;
 
         Ok(MotorShield {
             sensor_ir1: self.sensor_ir1.unwrap(),
