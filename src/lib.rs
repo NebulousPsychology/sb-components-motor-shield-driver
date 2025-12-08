@@ -114,28 +114,59 @@ pub mod pico_shield {
 
     /// pins not used by sb-components motor shield
     pub struct UnusedPins {
+        pub voltage_monitor: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio29,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        pub vbus_detect: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio24,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        pub b_power_save: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio23,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
         pub led: rp_pico::hal::gpio::Pin<
             rp_pico::hal::gpio::bank0::Gpio25,
             rp_pico::hal::gpio::FunctionNull,
             rp_pico::hal::gpio::PullDown,
         >,
-        pub gpio20: rp_pico::hal::gpio::Pin<
-            rp_pico::hal::gpio::bank0::Gpio20,
+        /// Recommended use: UART0TX (not gp16 uart0/i2c0)
+        pub gpio0: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio0,
             rp_pico::hal::gpio::FunctionNull,
             rp_pico::hal::gpio::PullDown,
         >,
-        pub gpio21: rp_pico::hal::gpio::Pin<
-            rp_pico::hal::gpio::bank0::Gpio21,
+        /// Recommended use: UART0RX (not gp17 uart0/i2c0)
+        pub gpio1: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio1,
             rp_pico::hal::gpio::FunctionNull,
             rp_pico::hal::gpio::PullDown,
         >,
+        /// Recommended use: sonic2_tr
         pub gpio15: rp_pico::hal::gpio::Pin<
             rp_pico::hal::gpio::bank0::Gpio15,
             rp_pico::hal::gpio::FunctionNull,
             rp_pico::hal::gpio::PullDown,
         >,
+        /// Recommended use: sonic2_en
         pub gpio16: rp_pico::hal::gpio::Pin<
             rp_pico::hal::gpio::bank0::Gpio16,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        /// Recommended use: 12C0 SDA
+        pub gpio20: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio20,
+            rp_pico::hal::gpio::FunctionNull,
+            rp_pico::hal::gpio::PullDown,
+        >,
+        /// Recommended use: 12C0 SCL
+        pub gpio21: rp_pico::hal::gpio::Pin<
+            rp_pico::hal::gpio::bank0::Gpio21,
             rp_pico::hal::gpio::FunctionNull,
             rp_pico::hal::gpio::PullDown,
         >,
@@ -149,7 +180,12 @@ pub mod pico_shield {
     ) -> Result<(PicoGeeekpiSbcShield, UnusedPins), sbc_motor_shield::MotorShieldError> {
         // ? 20+21 (i2c0) | 25 (picoled) | 15+16 (unused, another sio sonar?)
         let unused = UnusedPins {
+            voltage_monitor: pins.voltage_monitor, //29/adc vref?
+            b_power_save: pins.b_power_save,       //23/run?
+            vbus_detect: pins.vbus_detect,         //24
             led: pins.led,
+            gpio0: pins.gpio0,
+            gpio1: pins.gpio1,
             gpio15: pins.gpio15,
             gpio16: pins.gpio16,
             gpio20: pins.gpio20,
