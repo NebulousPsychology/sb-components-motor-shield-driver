@@ -46,6 +46,7 @@ pub mod ultrasonic {
     /// Operates the HC-SR04 ultrasonic sensor as used on the SBC Motor Shield
     /// <https://lastminuteengineers.com/arduino-sr04-ultrasonic-sensor-tutorial>
     /// The HC-SR04 can measure distances from 2 cm to 400 cm (about 0.8 inches to 157 inches) with an accuracy of about 3 mm.
+    #[deprecated(note = "switch to hcsr04 crate")]
     pub struct Sonar<TReceiverPin, TTriggerPin>
     where
         TReceiverPin: digital::InputPin,
