@@ -1,7 +1,7 @@
 #![no_std]
 
 // pub mod sbc_motor_shield;
-pub(crate) mod sbc_motor_shield;
+pub mod sbc_motor_shield;
 
 #[cfg(feature = "rp-pico")]
 pub mod pico_shield {

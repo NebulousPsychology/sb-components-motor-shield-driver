@@ -4,7 +4,7 @@ use embedded_hal::{digital, pwm};
 
 mod light;
 pub mod motor;
-mod sensor;
+pub mod sensor;
 
 pub struct LightArray<
     TLightFore: digital::OutputPin,
