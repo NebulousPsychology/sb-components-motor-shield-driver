@@ -1,6 +1,10 @@
-#![no_std]
+// #[cfg(feature = "rp-pico")]
+// #[no_std]
+#![cfg_attr(all(feature = "rp-pico"), no_std)] // Use no_std if std feature is disabled
+
 
 // pub mod sbc_motor_shield;
+use fugit::RateExtU32;
 pub mod sbc_motor_shield;
 
 #[cfg(feature = "rp-pico")]
@@ -267,19 +271,59 @@ pub mod pico_shield {
     }
 }
 
-#[cfg(all(feature = "sbc-rpi", unix))]
+#[cfg(all(feature = "sbc-rpi"))]
 mod rpi_shield {
+    use std;
     use crate::sbc_motor_shield;
+    use core::prelude::rust_2024::derive;
+    use core::write;
     use motor_driver_hal::driver::rppal::RppalMotorDriverBuilder;
-    use rppal::{gpio::Gpio, pwm::Channel};
+    use rppal::{
+        gpio::{self, Gpio},
+        pwm::{Channel, Pwm},
+    };
 
-    pub fn create_rpi() -> Result<
+    pub fn create_rpi(
+        gp: &Gpio,
+    ) -> Result<
         sbc_motor_shield::MotorShield<_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _>,
         _,
     > {
+        let motor_frequency: f64 = 50.toHz();
+        let max_duty: u16 = 100; // todo: confirm actual cycle
+        // select pin/channels, according to rppal docs
+        #[cfg(feature = "rp5")]
+        let channels = (); //12,13,18,19
+        #[cfg(not(feature = "rp5"))]
+        let channels = (); // pwm0=12/18, pwm1=13/19
+        // ! pwm pins (gpio.board) according to https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py: 11,22,19,32(phys)
+       //https://www.theengineeringprojects.com/wp-content/uploads/2022/04/09.jpg
+       let c4=Pwm::new(Channel::Pwm0)?;
+       // https://docs.golemparts.com/rppal/0.20.0/rppal/pwm/
+       // meanwhile, rpi.gpio uses software pwm : https://pypi.org/project/RPi.GPIO/
+        let m4d = motor_driver_hal::driver::rppal::RppalMotorDriverBuilder::new_rppal()
+            .with_encoder_pins(gpio, 24, 26)?
+            .with_pwm_channel(c4, frequency, max_duty)
+            .build_and_init()?;
         let board = sbc_motor_shield::MotorShieldConfigurationBuilder::new()
-            .with_motor1(p_f, p_b, p_e, duty)
+            // .with_motor1(p_f, p_b, p_e, duty)
+            // .with_ir1(gp.get(7)?.into_input_pullup())
+            // .with_ir2(gp.get(12)?.into_input_pullup())
+            .with_sonic(
+                gp.get(29).unwrap().into_output(),
+                gp.get(31).unwrap().into_input(),
+            )
+            .with_lights(
+                gp.get(37)?.into_output_low(), //f
+                gp.get(33)?.into_output_low(), //b
+                gp.get(35)?.into_output_low(), //l
+                gp.get(36)?.into_output_low(), //r
+            )
+            .with_motor4_driver(m4d)
             .build()?;
+        //! alt sonic 38 in (or 8); 40 out (or 10)
+ //       pins 8,10,38,40 are unused
+ 
         Ok(board)
     }
 }
