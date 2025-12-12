@@ -1,7 +1,7 @@
 [package]
 name = "sb-components-motor-shield-driver"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 cortex-m = "0.7.7"

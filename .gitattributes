@@ -1,0 +1,27 @@
+
+# Ensure consistent line endings across platforms
+* text=auto eol=lf
+
+# Treat Rust source files as text and use the default diff
+*.rs text diff=rust
+
+# Cargo manifest and lock files
+Cargo.toml text diff
+Cargo.lock text merge=union
+
+# Mark build artifacts as binary (no diff)
+target/** binary
+
+# Common text-based config files
+*.md text diff
+*.yml text
+*.yaml text
+*.json text
+*.toml text
+
+# Ignore diffs for generated files (e.g., protobuf, bindings)
+*.pb.rs -diff
+
+# GitHub Linguist overrides (optional)
+*.rs linguist-language=Rust
+

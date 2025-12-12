@@ -2,7 +2,6 @@
 // #[no_std]
 #![cfg_attr(all(feature = "rp-pico"), no_std)] // Use no_std if std feature is disabled
 
-
 // pub mod sbc_motor_shield;
 use fugit::RateExtU32;
 pub mod sbc_motor_shield;
@@ -273,7 +272,6 @@ pub mod pico_shield {
 
 #[cfg(all(feature = "sbc-rpi"))]
 mod rpi_shield {
-    use std;
     use crate::sbc_motor_shield;
     use core::prelude::rust_2024::derive;
     use core::write;
@@ -282,6 +280,7 @@ mod rpi_shield {
         gpio::{self, Gpio},
         pwm::{Channel, Pwm},
     };
+    use std;
 
     pub fn create_rpi(
         gp: &Gpio,
@@ -297,10 +296,15 @@ mod rpi_shield {
         #[cfg(not(feature = "rp5"))]
         let channels = (); // pwm0=12/18, pwm1=13/19
         // ! pwm pins (gpio.board) according to https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py: 11,22,19,32(phys)
-       //https://www.theengineeringprojects.com/wp-content/uploads/2022/04/09.jpg
-       let c4=Pwm::new(Channel::Pwm0)?;
-       // https://docs.golemparts.com/rppal/0.20.0/rppal/pwm/
-       // meanwhile, rpi.gpio uses software pwm : https://pypi.org/project/RPi.GPIO/
+        //https://www.theengineeringprojects.com/wp-content/uploads/2022/04/09.jpg
+        let c4 = Pwm::new(Channel::Pwm0)?;
+
+        let x = gp.get(14)?.into_output();
+        // ?   x.set_pwm(period, pulse_width)
+        // https://docs.golemparts.com/rppal/0.20.0/rppal/pwm/
+        // meanwhile, rpi.gpio uses software pwm : https://pypi.org/project/RPi.GPIO/
+        // todo: try WSL remote window to accommodate
+        // todo: re-confirm pin map for BCM names
         let m4d = motor_driver_hal::driver::rppal::RppalMotorDriverBuilder::new_rppal()
             .with_encoder_pins(gpio, 24, 26)?
             .with_pwm_channel(c4, frequency, max_duty)
@@ -321,9 +325,9 @@ mod rpi_shield {
             )
             .with_motor4_driver(m4d)
             .build()?;
-        //! alt sonic 38 in (or 8); 40 out (or 10)
- //       pins 8,10,38,40 are unused
- 
+        // ! alt sonic 38 in (or 8); 40 out (or 10)
+        //       pins 8,10,38,40 are unused
+
         Ok(board)
     }
 }
