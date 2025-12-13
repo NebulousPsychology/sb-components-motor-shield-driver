@@ -314,6 +314,33 @@ mod rpi_shield {
         gpio::OutputPin,
         // TLightFore, TLightBack, TLightLeft, TLightRight>
     >;
+    struct PwmOutputPin {
+        pub pin: gpio::OutputPin,
+        pub frequency: f64,
+    }
+    impl embedded_hal::pwm::SetDutyCycle for PwmOutputPin {
+        fn max_duty_cycle(&self) -> u16 {
+            100
+        }
+
+        fn set_duty_cycle(&mut self, duty: u16) -> Result<(), Self::Error> {
+            self.pin
+                .set_pwm_frequency(self.frequency, duty as f64 / self.max_duty_cycle());
+        }
+    }
+
+    // /// define setdutycycle for all software output pins
+    // impl embedded_hal::pwm::SetDutyCycle for gpio::OutputPin {
+    //     fn max_duty_cycle(&self) -> u16 {
+    //         todo!()
+    //     }
+
+    //     fn set_duty_cycle(&mut self, duty: u16) -> Result<(), Self::Error> {
+    //         // self.set_pwm(period, pulse_width);
+    //         self.set_pwm_frequency(frequency, duty_cycle)
+    //     }
+    // }
+
     pub fn create_rpi(gp: &Gpio) -> Result<(), rppal::gpio::Error> {
         let motor_frequency: f64 = 50.Hz().into() as f64;
         let max_duty: u16 = 100; // todo: confirm actual cycle
@@ -349,6 +376,8 @@ mod rpi_shield {
             //     max_duty,
             // )
             .build();
+        // ! fixme: the reason it's so hard to coax rppal to configure pwm for a particular pin is that pwm pins are defined by the rpi pwm overlay config files of the sysfs interface
+        // https://www.kernel.org/doc/html/v5.10/driver-api/pwm.html#using-pwms-with-the-sysfs-interface
 
         let rpwr = motor_driver_hal::wrapper::rppal::PwmWrapper::new(x, 0u16);
         // https://docs.golemparts.com/rppal/0.20.0/rppal/pwm/
