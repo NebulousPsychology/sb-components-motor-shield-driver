@@ -1,3 +1,5 @@
+#[cfg(not(feature = "sbc-pico"))]
+compile_error!("pico only");
 #![no_std]
 #![no_main]
 #![allow(unused_variables)]

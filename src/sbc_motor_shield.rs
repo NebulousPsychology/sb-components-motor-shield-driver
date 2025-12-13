@@ -68,29 +68,29 @@ pub struct MotorShield<
 }
 
 impl<
-    TIR1: digital::InputPin,
-    TIR2: digital::InputPin,
-    TSonicEcho: digital::InputPin,
-    TSonicTrig: digital::OutputPin,
-    // TSonicEcho2: digital::InputPin,
-    // TSonicTrig2: digital::OutputPin,
-    TM1F: digital::OutputPin,
-    TM1B: digital::OutputPin,
-    TM1E: pwm::SetDutyCycle,
-    TM2F: digital::OutputPin,
-    TM2B: digital::OutputPin,
-    TM2E: pwm::SetDutyCycle,
-    TM3F: digital::OutputPin,
-    TM3B: digital::OutputPin,
-    TM3E: pwm::SetDutyCycle,
-    TM4F: digital::OutputPin,
-    TM4B: digital::OutputPin,
-    TM4E: pwm::SetDutyCycle,
-    TLightFore: digital::OutputPin,
-    TLightBack: digital::OutputPin,
-    TLightLeft: digital::OutputPin,
-    TLightRight: digital::OutputPin,
->
+        TIR1: digital::InputPin,
+        TIR2: digital::InputPin,
+        TSonicEcho: digital::InputPin,
+        TSonicTrig: digital::OutputPin,
+        // TSonicEcho2: digital::InputPin,
+        // TSonicTrig2: digital::OutputPin,
+        TM1F: digital::OutputPin,
+        TM1B: digital::OutputPin,
+        TM1E: pwm::SetDutyCycle,
+        TM2F: digital::OutputPin,
+        TM2B: digital::OutputPin,
+        TM2E: pwm::SetDutyCycle,
+        TM3F: digital::OutputPin,
+        TM3B: digital::OutputPin,
+        TM3E: pwm::SetDutyCycle,
+        TM4F: digital::OutputPin,
+        TM4B: digital::OutputPin,
+        TM4E: pwm::SetDutyCycle,
+        TLightFore: digital::OutputPin,
+        TLightBack: digital::OutputPin,
+        TLightLeft: digital::OutputPin,
+        TLightRight: digital::OutputPin,
+    >
     MotorShield<
         TIR1,
         TIR2,
@@ -221,27 +221,27 @@ impl MissingFieldsError {
 }
 
 impl<
-    TIR1: digital::InputPin,
-    TIR2: digital::InputPin,
-    TSonicEcho: digital::InputPin,
-    TSonicTrig: digital::OutputPin,
-    TM1F: digital::OutputPin,
-    TM1B: digital::OutputPin,
-    TM1E: pwm::SetDutyCycle,
-    TM2F: digital::OutputPin,
-    TM2B: digital::OutputPin,
-    TM2E: pwm::SetDutyCycle,
-    TM3F: digital::OutputPin,
-    TM3B: digital::OutputPin,
-    TM3E: pwm::SetDutyCycle,
-    TM4F: digital::OutputPin,
-    TM4B: digital::OutputPin,
-    TM4E: pwm::SetDutyCycle,
-    TLightFore: digital::OutputPin,
-    TLightBack: digital::OutputPin,
-    TLightLeft: digital::OutputPin,
-    TLightRight: digital::OutputPin,
->
+        TIR1: digital::InputPin,
+        TIR2: digital::InputPin,
+        TSonicEcho: digital::InputPin,
+        TSonicTrig: digital::OutputPin,
+        TM1F: digital::OutputPin,
+        TM1B: digital::OutputPin,
+        TM1E: pwm::SetDutyCycle,
+        TM2F: digital::OutputPin,
+        TM2B: digital::OutputPin,
+        TM2E: pwm::SetDutyCycle,
+        TM3F: digital::OutputPin,
+        TM3B: digital::OutputPin,
+        TM3E: pwm::SetDutyCycle,
+        TM4F: digital::OutputPin,
+        TM4B: digital::OutputPin,
+        TM4E: pwm::SetDutyCycle,
+        TLightFore: digital::OutputPin,
+        TLightBack: digital::OutputPin,
+        TLightLeft: digital::OutputPin,
+        TLightRight: digital::OutputPin,
+    >
     MotorShieldConfigurationBuilder<
         TIR1,
         TIR2,
@@ -410,5 +410,39 @@ impl<
             },
             lights: self.lights.unwrap(),
         })
+    }
+
+    pub fn build_and_init(
+        self,
+    ) -> Result<
+        MotorShield<
+            TIR1,
+            TIR2,
+            TSonicEcho,
+            TSonicTrig,
+            TM1F,
+            TM1B,
+            TM1E,
+            TM2F,
+            TM2B,
+            TM2E,
+            TM3F,
+            TM3B,
+            TM3E,
+            TM4F,
+            TM4B,
+            TM4E,
+            TLightFore,
+            TLightBack,
+            TLightLeft,
+            TLightRight,
+        >,
+        MotorShieldError,
+    > {
+        let mut board = self.build()?;
+        // &(&((&board).motors).motor1).
+        // let &mut m1: motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, ()> =
+        //     &mut board.motors.motor1;
+        return Ok(board);
     }
 }
