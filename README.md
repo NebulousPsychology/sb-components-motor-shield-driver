@@ -4,6 +4,7 @@ Rust driver for board components of
 
 <https://github.com/sbcshop/MotorShield>
 
+[cross compile](https://github.com/japaric/rust-cross)
 
 <https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py>
 ```python

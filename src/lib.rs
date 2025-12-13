@@ -1,6 +1,4 @@
-// #[cfg(feature = "rp-pico")]
-// #[no_std]
-#![cfg_attr(all(feature = "rp-pico"), no_std)] // Use no_std if std feature is disabled
+#![cfg_attr(not(feature = "std"), no_std)] // Use no_std if std feature is disabled
 
 // pub mod sbc_motor_shield;
 use fugit::RateExtU32;
@@ -270,45 +268,98 @@ pub mod pico_shield {
     }
 }
 
-#[cfg(all(feature = "sbc-rpi"))]
+#[cfg(all(
+    feature = "sbc-rpi",
+    feature = "std",
+    not(feature = "sbc-pico"),
+    any(target_arch = "arm", target_arch = "aarch64"),
+    // any(target_family = "unix")
+))]
 mod rpi_shield {
+    use std::*;
+    //
     use crate::sbc_motor_shield;
-    use core::prelude::rust_2024::derive;
-    use core::write;
-    use motor_driver_hal::driver::rppal::RppalMotorDriverBuilder;
+    use fugit::{ExtU32, RateExtU32};
+    use motor_driver_hal as mdh;
     use rppal::{
         gpio::{self, Gpio},
         pwm::{Channel, Pwm},
     };
-    use std;
-
-    pub fn create_rpi(
-        gp: &Gpio,
-    ) -> Result<
-        sbc_motor_shield::MotorShield<_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _>,
-        _,
-    > {
-        let motor_frequency: f64 = 50.toHz();
+    type RppalSbcBoard = crate::sbc_motor_shield::MotorShield<
+        gpio::InputPin,
+        gpio::InputPin,
+        //IR1, TIR2,
+        gpio::InputPin,
+        gpio::OutputPin,
+        //TSonicEcho, TSonicTrig,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        rppal::pwm::Pwm, //pwm
+        // TM1F, TM1B, TM1E,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        rppal::pwm::Channel, //pwm
+        // TM2F, TM2B, TM2E,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        rppal::pwm::Channel, //pwm
+        //TM3F, TM3B, TM3E,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        rppal::pwm::Channel, // pwm
+        // TM4F, TM4B, TM4E,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        gpio::OutputPin,
+        // TLightFore, TLightBack, TLightLeft, TLightRight>
+    >;
+    pub fn create_rpi(gp: &Gpio) -> Result<(), rppal::gpio::Error> {
+        let motor_frequency: f64 = 50.Hz().into() as f64;
         let max_duty: u16 = 100; // todo: confirm actual cycle
-        // select pin/channels, according to rppal docs
+                                 // select pin/channels, according to rppal docs
         #[cfg(feature = "rp5")]
         let channels = (); //12,13,18,19
         #[cfg(not(feature = "rp5"))]
         let channels = (); // pwm0=12/18, pwm1=13/19
-        // ! pwm pins (gpio.board) according to https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py: 11,22,19,32(phys)
-        //https://www.theengineeringprojects.com/wp-content/uploads/2022/04/09.jpg
-        let c4 = Pwm::new(Channel::Pwm0)?;
+                           // ! pwm pins (gpio.board) according to https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py: 11,22,19,32(phys)
 
-        let x = gp.get(14)?.into_output();
-        // ?   x.set_pwm(period, pulse_width)
+        let x = gp.get(12).unwrap().into_output();
+        let (period, pulse_width) = (1u32, 2u32);
+        // x.set_pwm(period.millis(), pulse_width.millis()).unwrap();
+
+        let p0 = rppal::pwm::Pwm::new(rppal::pwm::Channel::Pwm0).unwrap();
+        let pwr = motor_driver_hal::PwmWrapper::new(p0, 100);
+
+        //> let motor = RppalMotorBuilder::new_rppal()
+        //>     .with_dual_gpio_enable(&gpio, 23, 24)?
+        //>     .with_pwm_channels(&pwm, 18, 19, 1000.0, 1000)?
+        //>     .build()?;
+        let m4d: motor_driver_hal::MotorDriverWrapper<
+            motor_driver_hal::GpioWrapper<gpio::OutputPin>,
+            motor_driver_hal::GpioWrapper<gpio::OutputPin>,
+            motor_driver_hal::PwmWrapper,
+            (),
+        > = motor_driver_hal::wrapper::rppal::RppalMotorBuilder::new_rppal()
+            .with_dual_gpio_enable(gp, 8, 7)?
+            .with_pwm_channels(motor_driver_hal::PwmChannels::Single(pwr))
+            // .with_pwm_channel(
+            //     motor_driver_hal::PwmChannels::Dual(pwr, _),
+            //     motor_frequency,
+            //     max_duty,
+            // )
+            .build();
+
+        let rpwr = motor_driver_hal::wrapper::rppal::PwmWrapper::new(x, 0u16);
         // https://docs.golemparts.com/rppal/0.20.0/rppal/pwm/
         // meanwhile, rpi.gpio uses software pwm : https://pypi.org/project/RPi.GPIO/
         // todo: try WSL remote window to accommodate
         // todo: re-confirm pin map for BCM names
-        let m4d = motor_driver_hal::driver::rppal::RppalMotorDriverBuilder::new_rppal()
-            .with_encoder_pins(gpio, 24, 26)?
-            .with_pwm_channel(c4, frequency, max_duty)
-            .build_and_init()?;
+        // let m4d = motor_driver_hal::driver::rppal::RppalMotorDriverBuilder::new_rppal()
+        //     .with_encoder_pins(gp, 24, 26)?
+        //     // .with_pwm_channel(c4, motor_frequency, max_duty)
+        //     .build_and_init()
+        //     .unwrap();
         let board = sbc_motor_shield::MotorShieldConfigurationBuilder::new()
             // .with_motor1(p_f, p_b, p_e, duty)
             // .with_ir1(gp.get(7)?.into_input_pullup())
