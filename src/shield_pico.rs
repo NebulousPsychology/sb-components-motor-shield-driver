@@ -1,8 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)] // Use no_std if std feature is disabled
-
-// pub mod sbc_motor_shield;
-use fugit::RateExtU32;
-pub mod sbc_motor_shield;
+#[cfg(feature = "std")] // Use no_std if std feature is disabled
+compile_error!("pico should not be defined for std environments");
 
 #[cfg(feature = "rp-pico")]
 pub mod shield_pico {
@@ -107,11 +104,6 @@ pub mod shield_pico {
             rp_pico::hal::gpio::PullDown,
         >,
     >;
-
-    #[deprecated]
-    /// Initialize the sb-components motor shield.
-    /// Mapped according to the geekpi pico-to-rpi-40pin-hat breakout board
-    pub fn create_with_extras(pins: rp_pico::Pins, pwm_slices: rp_pico::hal::pwm::Slices) {}
 
     /// pins not used by sb-components motor shield
     pub struct UnusedPins {

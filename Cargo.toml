@@ -22,8 +22,8 @@ fugit = "0.3.9"
 
 
 [features]
-default = ["sbc-rpi"]
-# default = ["sbc-pico"]
+# default = ["sbc-rpi"]
+default = ["sbc-pico"]
 arm = []
 std = []
 sbc-pico = ["arm", "rp-pico", "motor-driver-hal"]

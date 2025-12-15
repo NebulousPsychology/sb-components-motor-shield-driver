@@ -1,5 +1,6 @@
 #![allow(dead_code, unused_variables)]
 
+// use core::prelude::rust_2021::*;
 use embedded_hal::{digital, pwm};
 
 mod light;
@@ -443,6 +444,10 @@ impl<
         // &(&((&board).motors).motor1).
         // let &mut m1: motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, ()> =
         //     &mut board.motors.motor1;
+        let y: &mut TLightBack = &mut board.lights.back;
+        board.lights.fore.set_low().unwrap();
+
+        // board.motors.motor1....
         return Ok(board);
     }
 }

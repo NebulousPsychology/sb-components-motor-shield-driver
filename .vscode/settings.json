@@ -13,10 +13,10 @@
         "--color=never"
     ],
     "rust-analyzer.check.targets": [
-        // "thumbv6m-none-eabi",
-        "aarch64-unknown-linux-gnu",
+        "thumbv6m-none-eabi",
+        // "aarch64-unknown-linux-gnu",
     ],
-    "rust-analyzer.check.allTargets": true,
+    "rust-analyzer.check.allTargets": false,
     "cSpell.words": [
         "rustc",
         "rppal",
