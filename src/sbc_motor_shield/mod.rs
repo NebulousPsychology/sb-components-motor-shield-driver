@@ -1,7 +1,10 @@
 #![allow(dead_code, unused_variables)]
 
 // use core::prelude::rust_2021::*;
-use embedded_hal::{digital, pwm};
+use embedded_hal::{
+    digital,
+    pwm::{self, SetDutyCycle},
+};
 mod light;
 pub mod motor;
 use motor_driver_hal::MotorDriver;
@@ -33,10 +36,10 @@ pub struct MotorArray<
     TM4B: digital::OutputPin,
     TM4E: pwm::SetDutyCycle,
 > {
-    pub motor1: motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, ()>,
-    pub motor2: motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, ()>,
-    pub motor3: motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, ()>,
-    pub motor4: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, ()>,
+    pub motor1: motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, TM1E>,
+    pub motor2: motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, TM2E>,
+    pub motor3: motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, TM3E>,
+    pub motor4: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>,
 }
 
 pub struct MotorShield<
@@ -160,10 +163,10 @@ pub struct MotorShieldConfigurationBuilder<
     pub sensor_sonic: Option<sensor::ultrasonic::Sonar<TSonicEcho, TSonicTrig>>,
     // pub motors:
     //     Option<MotorArray<TM1F, TM1B, TM1E, TM2F, TM2B, TM2E, TM3F, TM3B, TM3E, TM4F, TM4B, TM4E>>,
-    pub m1: Option<motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, ()>>,
-    pub m2: Option<motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, ()>>,
-    pub m3: Option<motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, ()>>,
-    pub m4: Option<motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, ()>>,
+    pub m1: Option<motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, TM1E>>,
+    pub m2: Option<motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, TM2E>>,
+    pub m3: Option<motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, TM3E>>,
+    pub m4: Option<motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>>,
     pub lights: Option<LightArray<TLightFore, TLightBack, TLightLeft, TLightRight>>,
 }
 
@@ -283,15 +286,21 @@ impl<
         p_b: B,
         p_e: E,
         duty: Option<u16>,
-    ) -> motor_driver_hal::MotorDriverWrapper<F, B, E, ()>
+    ) -> motor_driver_hal::MotorDriverWrapper<F, B, E, E>
     where
         F: digital::OutputPin,
         B: digital::OutputPin,
         E: pwm::SetDutyCycle,
     {
+        // According to motor_driver_hal::MotorDriverWrapper::update_pwm:
+        // the motordriver only acts on the `PwmChannels<P1,P2>::Single(pwm:P1)`
+        // P2 is ignored, provided nothing alters the wrapper's `pwm_channels` member
+        // According to motor_driver_hal::MotorDriverWrapper::
+        // TODO: test whether control_enable|Dual is handling dual enable pins properly
         return motor_driver_hal::MotorDriverBuilder::new()
             .with_dual_enable(p_f, p_b)
-            .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_e))
+            // .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_e))
+            .with_single_pwm(p_e)
             .with_max_duty(duty.unwrap_or_else(|| 1000))
             .build();
     }
@@ -348,7 +357,7 @@ impl<
     /// (allows direct configuration from RppalMotorDriverBuilder)
     pub fn with_motor4_driver(
         mut self,
-        driver: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, ()>,
+        driver: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>,
     ) -> Self {
         self.m4 = Some(driver);
         return self;
@@ -446,10 +455,10 @@ impl<
         //     &mut board.motors.motor1;
         let y: &mut TLightBack = &mut board.lights.back;
         board.lights.fore.set_low().unwrap();
-        (&mut board.motors.motor1).initialize();
-        (&mut board.motors.motor2).initialize();
-        (&mut board.motors.motor3).initialize();
-        (&mut board.motors.motor4).initialize();
+        (&mut board.motors.motor1).initialize().unwrap();
+        (&mut board.motors.motor2).initialize().unwrap();
+        (&mut board.motors.motor3).initialize().unwrap();
+        (&mut board.motors.motor4).initialize().unwrap();
         return Ok(board);
     }
 }

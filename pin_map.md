@@ -35,6 +35,14 @@ the sb components board is coded in python for software pwm motor control by Rpi
 - can RpiGP25 be M2en(PWM)?
 - rpigp{13,19} wastes pwm1 on leds?
 
+single if Coast: setduty 0
+single _ : set duty duty
+
+Dual if Forward: pwm1 @duty; pwm2 @0
+Dual if Reverse: pwm1 @0, pwm2 @duty
+Dual if Brake: pwm1&2 @maxduty
+Dual if Coast: pwm1&2 @0
+
 footed[^1]
 p5=us1T
 
