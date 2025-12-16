@@ -1,12 +1,10 @@
 #![allow(dead_code, unused_variables)]
 
 // use core::prelude::rust_2021::*;
-use embedded_hal::{
-    digital,
-    pwm::{self, SetDutyCycle},
-};
+use embedded_hal::{digital, pwm};
 mod light;
 pub mod motor;
+use motor::sbc_motor_hal::MotorL293x;
 use motor_driver_hal::MotorDriver;
 pub mod sensor;
 
@@ -36,10 +34,10 @@ pub struct MotorArray<
     TM4B: digital::OutputPin,
     TM4E: pwm::SetDutyCycle,
 > {
-    pub motor1: motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, TM1E>,
-    pub motor2: motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, TM2E>,
-    pub motor3: motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, TM3E>,
-    pub motor4: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>,
+    pub motor1: MotorL293x<TM1F, TM1B, TM1E>,
+    pub motor2: MotorL293x<TM2F, TM2B, TM2E>,
+    pub motor3: MotorL293x<TM3F, TM3B, TM3E>,
+    pub motor4: MotorL293x<TM4F, TM4B, TM4E>,
 }
 
 pub struct MotorShield<
@@ -163,10 +161,10 @@ pub struct MotorShieldConfigurationBuilder<
     pub sensor_sonic: Option<sensor::ultrasonic::Sonar<TSonicEcho, TSonicTrig>>,
     // pub motors:
     //     Option<MotorArray<TM1F, TM1B, TM1E, TM2F, TM2B, TM2E, TM3F, TM3B, TM3E, TM4F, TM4B, TM4E>>,
-    pub m1: Option<motor_driver_hal::MotorDriverWrapper<TM1F, TM1B, TM1E, TM1E>>,
-    pub m2: Option<motor_driver_hal::MotorDriverWrapper<TM2F, TM2B, TM2E, TM2E>>,
-    pub m3: Option<motor_driver_hal::MotorDriverWrapper<TM3F, TM3B, TM3E, TM3E>>,
-    pub m4: Option<motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>>,
+    pub m1: Option<MotorL293x<TM1F, TM1B, TM1E>>,
+    pub m2: Option<MotorL293x<TM2F, TM2B, TM2E>>,
+    pub m3: Option<MotorL293x<TM3F, TM3B, TM3E>>,
+    pub m4: Option<MotorL293x<TM4F, TM4B, TM4E>>,
     pub lights: Option<LightArray<TLightFore, TLightBack, TLightLeft, TLightRight>>,
 }
 
@@ -281,12 +279,8 @@ impl<
             m4: None,
         }
     }
-    fn create_motor<F, B, E>(
-        p_f: F,
-        p_b: B,
-        p_e: E,
-        duty: Option<u16>,
-    ) -> motor_driver_hal::MotorDriverWrapper<F, B, E, E>
+
+    fn create_motor<F, B, E>(p_f: F, p_b: B, p_e: E, duty: Option<u16>) -> MotorL293x<F, B, E>
     where
         F: digital::OutputPin,
         B: digital::OutputPin,
@@ -297,12 +291,12 @@ impl<
         // P2 is ignored, provided nothing alters the wrapper's `pwm_channels` member
         // According to motor_driver_hal::MotorDriverWrapper::
         // TODO: test whether control_enable|Dual is handling dual enable pins properly
-        return motor_driver_hal::MotorDriverBuilder::new()
-            .with_dual_enable(p_f, p_b)
-            // .with_pwm_channels(motor_driver_hal::wrapper::PwmChannels::Single(p_e))
-            .with_single_pwm(p_e)
-            .with_max_duty(duty.unwrap_or_else(|| 1000))
-            .build();
+        // return motor_driver_hal::MotorDriverBuilder::new()
+        //     .with_dual_enable(p_f, p_b)
+        //     .with_single_pwm(p_e)
+        //     .with_max_duty(duty.unwrap_or_else(|| 1000))
+        //     .build();
+        return MotorL293x::new(p_f, p_b, p_e, duty);
     }
 
     pub fn with_ir1(mut self, t: TIR1) -> Self {
@@ -350,18 +344,20 @@ impl<
         return self;
     }
 
-    pub fn with_motor4(self, p_f: TM4F, p_b: TM4B, p_e: TM4E, duty: Option<u16>) -> Self {
-        return self.with_motor4_driver(Self::create_motor(p_f, p_b, p_e, duty));
+    pub fn with_motor4(mut self, p_f: TM4F, p_b: TM4B, p_e: TM4E, duty: Option<u16>) -> Self {
+        //~~ return self.with_motor4_driver(Self::create_motor(p_f, p_b, p_e, duty));
+        self.m4 = Some(Self::create_motor(p_f, p_b, p_e, duty));
+        return self;
     }
 
     /// (allows direct configuration from RppalMotorDriverBuilder)
-    pub fn with_motor4_driver(
-        mut self,
-        driver: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>,
-    ) -> Self {
-        self.m4 = Some(driver);
-        return self;
-    }
+    //~~ pub fn with_motor4_driver(
+    //~~     mut self,
+    //~~     driver: motor_driver_hal::MotorDriverWrapper<TM4F, TM4B, TM4E, TM4E>,
+    //~~ ) -> Self {
+    //~~     self.m4 = Some(driver);
+    //~~     return self;
+    //~~ }
 
     /// perform final checks and return a descriptive MissingFields error
     fn validity(&self) -> Result<(), MotorShieldError> {

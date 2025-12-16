@@ -164,3 +164,11 @@ mod shield_rpi {
         Ok(board)
     }
 }
+
+#[cfg(not(all(
+    feature = "sbc-rpi",
+    feature = "std",
+    not(feature = "sbc-pico"),
+    any(target_arch = "arm", target_arch = "aarch64"),
+)))]
+compile_error!("require rp4 to build with shield_rpi");

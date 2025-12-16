@@ -1,17 +1,20 @@
-//! NOTE: Consider adopting L293X package or motor-driver-hal from crates.io
-// #![cfg(not(feature = "motor-driver-hal"))] // Use no_std if std feature is disabled
-mod sbc_motor_hal {
+//! NOTE:
+//! crate L293X does not abstract the operation into a motor point-of-view
+//! crate motor-driver-hal does not implement pwm-throttle/digital-direction
+
+pub(super) mod sbc_motor_hal {
+    // #![cfg(not(feature = "motor-driver-hal"))] // Use no_std if std feature is disabled
     use embedded_hal::{
         digital::{self},
         pwm::{self},
     };
-    use motor_driver_hal::{HBridgeMotorDriver, MotorDirection, MotorDriver, MotorDriverError};
+    use motor_driver_hal::{MotorDirection, MotorDriver, MotorDriverError};
 
     /// Provide a MotorDriver for the L293x's "Single EN PWM/Dual Direction Pin" arrangement
     ///
     /// > [!WARNING]
     /// > There are deep electrical reasons why "Single EN Pin/Dual Direction PWM"
-    /// > is better at handling state changes while braking.
+    /// > is technically better at handling state changes while braking.
     /// > - jitter
     /// > - torque ripple
     /// > - back-EMF
@@ -105,7 +108,7 @@ mod sbc_motor_hal {
         /// As in MotorDriverWrapper::update_pwm, interpret the speed and direction and set pins.
         /// However, here the L293x patterns are used.
         fn update_pwm(&mut self) -> Result<(), MotorDriverError> {
-            let duty = self.current_speed.unsigned_abs().min(self.max_duty);
+            let abs_duty = self.current_speed.unsigned_abs().min(self.max_duty);
 
             // original would hold the EN pin, and set one pwm 0 while providing trottle with the other
 
@@ -115,14 +118,14 @@ mod sbc_motor_hal {
 
             // init sets speed 0 | duty 0,0 | pins: 0,0
 
-            let (newduty, ctrl) = match self.direction {
+            let (duty, ctrl) = match self.direction {
                 MotorDirection::Brake => (self.max_duty, Some((false, false))),
                 MotorDirection::Coast => (0, None),
-                MotorDirection::Forward => (duty, Some((true, false))),
-                MotorDirection::Reverse => (duty, Some((false, true))),
+                MotorDirection::Forward => (abs_duty, Some((true, false))),
+                MotorDirection::Reverse => (abs_duty, Some((false, true))),
             };
             // apply the settings
-            self.set_pwm(newduty)?;
+            self.set_pwm(duty)?;
             if let Some((f, b)) = ctrl {
                 self.set_pins(f, b)?;
             };
@@ -130,8 +133,7 @@ mod sbc_motor_hal {
         }
     }
 
-    impl<TFwdPin, TBakPin, TPwmPin> motor_driver_hal::MotorDriver
-        for MotorL293x<TFwdPin, TBakPin, TPwmPin>
+    impl<TFwdPin, TBakPin, TPwmPin> MotorDriver for MotorL293x<TFwdPin, TBakPin, TPwmPin>
     where
         TFwdPin: digital::OutputPin,
         TBakPin: digital::OutputPin,
@@ -144,6 +146,7 @@ mod sbc_motor_hal {
             // control_enable(false)
             //      set dir pins: double low
             // dutycycle zero
+            self.direction = MotorDirection::Coast;
             self.set_pins(false, false)?; // fighting
             self.set_pwm(0)?;
             self.initialized = true;
