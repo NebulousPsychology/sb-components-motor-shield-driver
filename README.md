@@ -9,11 +9,10 @@ The documents and sample code for which are found:
 
 This crate provides an embedded-hal processor agnostic definition of the shield board, as well as an implementation for Rpi4 (rppal)
 
-Any breakout which can feed the Rpi4 40pin [can map](pin_map.md) may define a board using `sbc_motor_shield::MotorShieldConfigurationBuilder`
-
-`shield_pico::PicoGeeekpiSbcShield` defines the shield for Pico, as mapped by a
-(possibly now discontinued?) breakout board from [Geeekpi](https://thegeekpi.com). Breakouts by Waveshare may map similarly.
-Niche, but demonstrates that mappings for Pico are possible.
+Any breakout which can feed the Rpi4 40pin [can map](pin_map.md) may define a board using `sbc_motor_shield::MotorShieldConfigurationBuilder`.
+One such shield for Pico is `shield_pico::PicoGeeekpiSbcShield`, as mapped by a (possibly now discontinued?) breakout board
+from [Geeekpi](https://thegeekpi.com). Breakouts by Waveshare may map similarly.
+A niche scenario, but demonstrates that mappings for Pico are possible.
 
 ## Issues
 
