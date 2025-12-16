@@ -256,6 +256,7 @@ pub mod shield_pico {
             )
             // .with_i2c(sda:pins.gpio20, scl:pins.gpio21) // I2C #0
             .build()?;
+
         return Ok((pico_shield, unused));
     }
 }

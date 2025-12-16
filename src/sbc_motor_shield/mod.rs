@@ -2,9 +2,9 @@
 
 // use core::prelude::rust_2021::*;
 use embedded_hal::{digital, pwm};
-
 mod light;
 pub mod motor;
+use motor_driver_hal::MotorDriver;
 pub mod sensor;
 
 pub struct LightArray<
@@ -446,8 +446,10 @@ impl<
         //     &mut board.motors.motor1;
         let y: &mut TLightBack = &mut board.lights.back;
         board.lights.fore.set_low().unwrap();
-
-        // board.motors.motor1....
+        (&mut board.motors.motor1).initialize();
+        (&mut board.motors.motor2).initialize();
+        (&mut board.motors.motor3).initialize();
+        (&mut board.motors.motor4).initialize();
         return Ok(board);
     }
 }
