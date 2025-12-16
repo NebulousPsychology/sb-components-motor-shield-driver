@@ -3,7 +3,6 @@ compile_error!("pico should not be defined for std environments");
 
 #[cfg(feature = "rp-pico")]
 pub mod shield_pico {
-
     use crate::sbc_motor_shield;
 
     pub type PicoGeeekpiSbcShield = sbc_motor_shield::MotorShield<
@@ -209,7 +208,6 @@ pub mod shield_pico {
         ]
         chA (even pin, pwmout only),  chB (odd pin, pwmio)
          */
-
         // Produce the motor shield
         let pico_shield = sbc_motor_shield::MotorShieldConfigurationBuilder::new()
             .with_ir1(pins.gpio6.into_pull_up_input())
@@ -218,10 +216,6 @@ pub mod shield_pico {
                 pins.gpio10.into_push_pull_output(),
                 pins.gpio11.into_floating_input(), // pull type not specified?
             )
-            // .with_sonic2(
-            //     pins.gpio15.into_push_pull_output(),
-            //     pins.gpio16.into_floating_input(), // pull type not specified?
-            // )
             .with_lights(
                 pins.gpio14.into_push_pull_output(), // F
                 pins.gpio12.into_push_pull_output(), // B
@@ -255,6 +249,11 @@ pub mod shield_pico {
                 Some(1000),
             )
             // .with_i2c(sda:pins.gpio20, scl:pins.gpio21) // I2C #0
+            // .with_uart(...)
+            // .with_sonic2(
+            //     pins.gpio15.into_push_pull_output(),
+            //     pins.gpio16.into_floating_input(), // pull type not specified?
+            // )
             .build()?;
 
         return Ok((pico_shield, unused));

@@ -1,61 +1,55 @@
 # sb-components-motor-shield-driver
-Rust driver for board components of
-<https://shop.sb-components.co.uk/collections/hats-for-raspberry-pi/products/motorshield-for-raspberry-pi>
 
-<https://github.com/sbcshop/MotorShield>
+Rust driver for board components of SB Components' [Motorshield for the Raspberry Pi][product_page]
 
-[cross compile](https://github.com/japaric/rust-cross)
+The documents and sample code for which are found:
 
-<https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py>
-```python
-TRIG = 29
-ECHO = 31
+- <https://github.com/sbcshop/MotorShield>
+- particularly: <https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py>
 
-GPIO.setup(TRIG,GPIO.OUT)
-GPIO.setup(ECHO,GPIO.IN)
+This crate provides an embedded-hal processor agnostic definition of the shield board, as well as an implementation for Rpi4 (rppal)
+
+Any breakout which can feed the Rpi4 40pin [can map](pin_map.md) may define a board using `sbc_motor_shield::MotorShieldConfigurationBuilder`
+
+`shield_pico::PicoGeeekpiSbcShield` defines the shield for Pico, as mapped by a
+(possibly now discontinued?) breakout board from [Geeekpi](https://thegeekpi.com). Breakouts by Waveshare may map similarly.
+Niche, but demonstrates that mappings for Pico are possible.
+
+## Issues
+
+The following issues prevent this crate from being `publish = true`
+
+- [ ] Poor features and cross compilation management. See [Build](#build)
+- [ ] Lack of tests
+- [ ] Namespacing could be better thought out
+
+## Build
+
+```bash
+cargo build --target thumbv6m-none-eabi -F sbc-pico --lib --no-default-features
+cargo build --target aarch64-unknown-linux-gnu -F sbc-rpi --lib --no-default-features
 ```
 
-```python
-count=0
-while True:
-    i=0
-    avgDistance=0
-    for i in range(5):
-        # five times, hold trigger low and wait .1 between 
-        GPIO.output(TRIG, False)
-        time.sleep(0.1)
-    
-        # ping the trigger high for 0.00_00_1
-        GPIO.output(TRIG, True) 
-        time.sleep(0.00001)
-        GPIO.output(TRIG, False)
-        
-        # wait for the echo, refreshing the pulse_start
-        while GPIO.input(ECHO)==0:
-            pulse_start = time.time()
-    
-        while GPIO.input(ECHO)==1:
-            pulse_end = time.time()
-            pulse_duration = pulse_end - pulse_start # get the timespan of the echoed pulse
-    
-            # calculate the distance
-            distance = (pulse_duration * 34300)/2
-            distance = round(distance,2)
+## other considerations
 
-            avgDistance=avgDistance+distance
-            # perform a running average
-            avgDistance=avgDistance/5
-            print(avgDistance)
-    
-        if avgDistance < 20:
-            count=count+1
-            stop()
-            time.sleep(1)
-            back()
-            time.sleep(2)
-            if (count%4 ==1):
-                right()
-    
-            else:
-                forward()
-```
+### [l293x](https://lib.rs/crates/l293x)
+
+ruled out as too bare-metal, cumbersome motor abstraction.
+
+### [motor-driver-hal](https://lib.rs/crates/motor-driver-hal)
+
+Enshrines a PWM-first direction logic not supported by the shield, requiring this project implement its traits for l293x.
+See [](/src/sbc_motor_shield/motor.rs)
+
+### [rppal](https://lib.rs/crates/rppal)
+
+Pi4 does not have hardware PWM on the pins used by the shield, so software pwm [is used instead](/src/shield_rpi.rs).
+By its inclusion in @sbcshop's samples, softPwm is not a dealbreaker.
+
+### [cross compile](https://github.com/japaric/rust-cross)
+
+possible route for improving the build workflow.
+
+-----
+
+[product_page]: https://shop.sb-components.co.uk/collections/hats-for-raspberry-pi/products/motorshield-for-raspberry-pi
