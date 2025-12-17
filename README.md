@@ -37,6 +37,10 @@ cargo build --target aarch64-unknown-linux-gnu -F sbc-rpi --lib --no-default-fea
 
 ## Other Considerations
 
+### [HC-SR04](https://lib.rs/crates/hcsr04)
+
+requires additional async work
+
 ### [l293x](https://lib.rs/crates/l293x)
 
 ruled out as too bare-metal, cumbersome motor abstraction.

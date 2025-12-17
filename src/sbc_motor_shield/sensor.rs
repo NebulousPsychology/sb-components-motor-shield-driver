@@ -39,7 +39,17 @@ pub mod infrared {
 
 /// # Manage the HC-SR04 Ultrasonic Sensor
 pub mod ultrasonic {
+
     use super::*;
+
+    fn sample<TReceiverPin: digital::InputPin, TTriggerPin: digital::OutputPin>(
+        a: TReceiverPin,
+        b: TTriggerPin,
+    ) {
+        // the way Hcsr04 declares generics `..., TEMP=NoTemperatureCompensation>` could be convenient
+        let s: hcsr04::Hcsr04<TTriggerPin, TReceiverPin, _, NoTemperatureCompensation> =
+            hcsr04::Hcsr04::builder().trig(b).echo(a).delay(100).build();
+    }
 
     /// # Ultrasonic Sensor Driver
     ///
@@ -121,8 +131,8 @@ pub mod ultrasonic {
             // 0.000_171_5 m/us
             const HALF_SOS_CM_PER_US: f32 = 0.017_15; // 0.017_15_ cm/us
             const HALF_SOS_MM_PER_US: f32 = 0.171_5; // 0.171_5__ mm/us
-            // 171.5 um/us
-            // 171_500 nm/us
+                                                     // 171.5 um/us
+                                                     // 171_500 nm/us
 
             // K_speed * round trip time of flight = round trip distance
             let measure: f32 = HALF_SOS_MM_PER_US * t_waiting_for_echo.to_micros() as f32;
