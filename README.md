@@ -26,7 +26,7 @@ Future Issues:
 
 - [ ] Interrupts and Asynchronous operation (related to switching to an existing HC-SR04 crate )
 - [ ] Lack of tests
-- [ ] Namespacing and project layout
+- [x] Namespacing and project layout
 
 ## Build
 

@@ -1,8 +1,9 @@
+#![no_std]
+#![no_main]
+#![allow(unused_variables)]
+
 #[cfg(feature = "sbc-pico")]
 mod pico_blink {
-    #![no_std]
-    #![no_main]
-    #![allow(unused_variables)]
 
     // The macro for our start-up function
     use embedded_hal::digital::OutputPin;

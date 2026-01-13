@@ -15,7 +15,7 @@
     ],
     "rust-analyzer.check.targets": [
         "thumbv6m-none-eabi",
-        "aarch64-unknown-linux-gnu",
+        // "aarch64-unknown-linux-gnu",
     ],
     "rust-analyzer.check.allTargets": false,
     "cSpell.words": [
@@ -23,6 +23,7 @@
         "rppal",
         "thumbv6m",
         "eabi",
+        "uart",
         "microcontrollers",
         "Geeekpi"
     ]

@@ -16,7 +16,7 @@ target = "thumbv6m-none-eabi"
 
 
 # aarch64-unknown-linux-gnu covers rpi4
-[target.aarch64-unknown-linux-gnu]
+# [target.aarch64-unknown-linux-gnu]
 
 
 # "thumbv6m-none-eabi" covers the pi pico: the Cortex-M0+ in the RP2040
