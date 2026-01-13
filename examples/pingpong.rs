@@ -63,12 +63,12 @@ fn ping_pong() -> ! {
 
     // Init PWMs
     let pwm_slices: hal::pwm::Slices = hal::pwm::Slices::new(pac.PWM, &mut pac.RESETS);
-    let _m = sbc_motor_shield::motor::MotorL293D::new(
+    let _m = components::motor::MotorL293D::new(
         pins.gpio0.into_push_pull_output(),
         pins.gpio1.into_push_pull_output(),
         pwm_slices.pwm0.channel_a,
     );
-    let m2 = sbc_motor_shield::motor::MotorL293D::new(
+    let m2 = components::motor::MotorL293D::new(
         pins.gpio2.into_push_pull_output(),
         pins.gpio3.into_push_pull_output(),
         pwm_slices.pwm0.channel_b,

@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)] // Use no_std if std feature is disabled
 
-pub mod sbc_motor_shield;
+pub mod components;
 
 #[cfg(all(feature = "rp-pico"))]
 pub mod shield_pico;

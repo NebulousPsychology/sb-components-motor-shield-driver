@@ -2,11 +2,10 @@
 
 // use core::prelude::rust_2021::*;
 use embedded_hal::{digital, pwm};
-mod light;
-pub mod motor;
-use motor::sbc_motor_hal::MotorL293x;
 use motor_driver_hal::MotorDriver;
+pub mod motor;
 pub mod sensor;
+use motor::sbc_motor_hal::MotorL293x;
 
 pub struct LightArray<
     TLightFore: digital::OutputPin,
