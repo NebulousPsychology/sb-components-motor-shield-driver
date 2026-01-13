@@ -23,7 +23,8 @@ pub(super) mod sbc_motor_hal {
     /// > For this reason, the `brake` method is discouraged.
     ///
     /// In any event, the official code for the sb components shield
-    /// endorses the L293x control patterns, and so
+    /// endorses the L293x control patterns, and so we implement
+    /// "Single EN PWM/Dual Direction Pin" with the motor_driver_hal trait
     pub struct MotorL293x<TFwdPin, TBakPin, TPwmPin>
     where
         TFwdPin: digital::OutputPin,
@@ -110,7 +111,7 @@ pub(super) mod sbc_motor_hal {
         fn update_pwm(&mut self) -> Result<(), MotorDriverError> {
             let abs_duty = self.current_speed.unsigned_abs().min(self.max_duty);
 
-            // original would hold the EN pin, and set one pwm 0 while providing trottle with the other
+            // original would hold the EN pin, and set one pwm 0 while providing throttle with the other
 
             // here, setspeed will have assigned cspeed, and dir:Forward/Reverse if nonzero, UNCHANGED if zero
             // here, stop sets speed 0, dir:coast  (duty: 0, pins opposed)

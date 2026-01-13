@@ -23,6 +23,7 @@
         "rppal",
         "thumbv6m",
         "eabi",
+        "uart",
         "microcontrollers",
         "Geeekpi"
     ]
