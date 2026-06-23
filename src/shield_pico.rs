@@ -104,28 +104,18 @@ pub mod shield_pico {
         >,
     >;
 
+    macro_rules! UnusedPinDefinition {
+        ($pin:ty) => {
+            rp_pico::hal::gpio::Pin<$pin, rp_pico::hal::gpio::FunctionNull, rp_pico::hal::gpio::PullDown>
+        };
+    }
+
     /// pins not used by sb-components motor shield
     pub struct UnusedPins {
-        pub voltage_monitor: rp_pico::hal::gpio::Pin<
-            rp_pico::hal::gpio::bank0::Gpio29,
-            rp_pico::hal::gpio::FunctionNull,
-            rp_pico::hal::gpio::PullDown,
-        >,
-        pub vbus_detect: rp_pico::hal::gpio::Pin<
-            rp_pico::hal::gpio::bank0::Gpio24,
-            rp_pico::hal::gpio::FunctionNull,
-            rp_pico::hal::gpio::PullDown,
-        >,
-        pub b_power_save: rp_pico::hal::gpio::Pin<
-            rp_pico::hal::gpio::bank0::Gpio23,
-            rp_pico::hal::gpio::FunctionNull,
-            rp_pico::hal::gpio::PullDown,
-        >,
-        pub led: rp_pico::hal::gpio::Pin<
-            rp_pico::hal::gpio::bank0::Gpio25,
-            rp_pico::hal::gpio::FunctionNull,
-            rp_pico::hal::gpio::PullDown,
-        >,
+        pub voltage_monitor: UnusedPinDefinition!(rp_pico::hal::gpio::bank0::Gpio29),
+        pub vbus_detect: UnusedPinDefinition!(rp_pico::hal::gpio::bank0::Gpio24),
+        pub b_power_save: UnusedPinDefinition!(rp_pico::hal::gpio::bank0::Gpio23),
+        pub led: UnusedPinDefinition!(rp_pico::hal::gpio::bank0::Gpio25),
         /// Recommended use: UART0TX (not gp16 uart0/i2c0)
         pub gpio0: rp_pico::hal::gpio::Pin<
             rp_pico::hal::gpio::bank0::Gpio0,
