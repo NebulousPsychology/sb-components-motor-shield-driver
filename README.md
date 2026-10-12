@@ -1,4 +1,6 @@
-# sb-components-motor-shield-driver
+# SB Components Motor Shield Driver
+
+Workspace for a portable `embedded-hal` driver, plus basic platform integrations, for SB Components' [Motor Shield for Raspberry Pi][product_page].
 
 Rust driver for board components of SB Components' [Motorshield for the Raspberry Pi][product_page]
 
@@ -14,26 +16,35 @@ One such shield for Pico is `shield_pico::PicoGeeekpiSbcShield`, as mapped by a 
 from [Geeekpi](https://thegeekpi.com). Breakouts by Waveshare may map similarly.
 A niche scenario, but demonstrates that mappings for Pico are possible.
 
-## Issues
+## Packages
 
-The Features and cross-compilation issues degrade the build workflow, and are publish-blocking, but the crate remains accessible via git:
-```toml
-sb-components-motor-shield-driver = { git = "https://github.com/NebulousPsychology/sb-components-motor-shield-driver", branch = "main" }
-```
-- [ ] Features and cross-compilation. [consult: rust-cross](https://github.com/japaric/rust-cross)
+- [`sb-components-motor-shield-core`](crates/core): publishable `no_std` driver
+  for the shield's motors and sensors.
+- [`sb-components-motor-shield-pico`](crates/pico): Pico/GeeekPi pin mapping and
+  examples.
+- [`sb-components-motor-shield-rpi`](crates/pi): Raspberry Pi GPIO/PWM setup.
 
-Future Issues:
-
-- [ ] Interrupts and Asynchronous operation (related to switching to an existing HC-SR04 crate )
-- [ ] Lack of tests
-- [x] Namespacing and project layout
+The packages share the `sb-components-motor-shield-` prefix and repository
+metadata.
+The adapters use workspace path dependencies during development and version requirements for registry publication.
+Publish the core before either adapter.
 
 ## Build
 
-```bash
-cargo build --target thumbv6m-none-eabi -F sbc-pico --lib --no-default-features
-cargo build --target aarch64-unknown-linux-gnu -F sbc-rpi --lib --no-default-features
+Check the core on the host:
+
+```sh
+cargo check -p sb-components-motor-shield-core
 ```
+
+Build Pico examples from `crates/pico`:
+
+```sh
+cargo build --target thumbv6m-none-eabi --examples
+```
+
+The pin mapping in [pin_map.md](pin_map.md) corresponds to a GeeekPi
+Pico-to-40-pin-HAT breakout. See each package README for platform notes.
 
 ## Other Considerations
 
@@ -61,6 +72,7 @@ makes virtually no effort to protect its accuracy. An existing crate is likely w
 - ~~<https://lib.rs/crates/hc-sr04> (rpi)~~ (rejected non-agnostic)
 - ~~<https://lib.rs/crates/hcsr04-gpio-cdev> (rpi5)~~ (rejected non-agnostic)
 
------
+---
 
+[rust_cross]: (https://github.com/japaric/rust-cross)
 [product_page]: https://shop.sb-components.co.uk/collections/hats-for-raspberry-pi/products/motorshield-for-raspberry-pi

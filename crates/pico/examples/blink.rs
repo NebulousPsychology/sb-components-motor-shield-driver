@@ -2,7 +2,6 @@
 #![no_main]
 #![allow(unused_variables)]
 
-#[cfg(feature = "sbc-pico")]
 mod pico_blink {
 
     // The macro for our start-up function
@@ -69,6 +68,3 @@ mod pico_blink {
         }
     }
 }
-
-#[cfg(not(feature = "sbc-pico"))]
-compile_error!("Blink ");

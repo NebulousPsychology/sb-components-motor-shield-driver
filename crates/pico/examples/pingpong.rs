@@ -19,7 +19,8 @@ use rp_pico::hal::pac;
 use rp_pico::hal;
 
 use fugit::RateExtU32;
-use sb_components_motor_shield_driver::*;
+use sb_components_motor_shield_core::components;
+use sb_components_motor_shield_pico as shield_pico;
 
 #[entry]
 fn ping_pong() -> ! {

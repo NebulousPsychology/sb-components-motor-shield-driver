@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use embedded_hal::{
+    delay::DelayNs,
     digital::{self, Error},
     pwm,
 };
@@ -81,7 +82,11 @@ pub mod ultrasonic {
         /// wait for the echo, refreshing the pulse_start
         /// while the echo is high, get the timespan of the echoed pulse
         ///
-        pub fn ping(&mut self, delay_source: &mut cortex_m::delay::Delay) -> () {
+        pub fn ping(
+            &mut self,
+            delay_source: &mut impl DelayNs,
+            now_micros: &mut impl FnMut() -> u32,
+        ) {
             // TODO: revisit with async
             const SETTLING_DELAY_MS: u32 = 333;
             const TRIGGER_SIGNAL_US: u32 = 10;
@@ -93,38 +98,37 @@ pub mod ultrasonic {
             // "As soon as these sound waves are sent out, the Echo pin goes HIGH, and
             // the sensor starts waiting for the echo to return."
             // wait until the echo is no longer low to start the duration measurement
-            let mut start = cortex_m::peripheral::SYST::get_current();
+            let mut start = now_micros();
             while self.echo_receiver.is_low().unwrap() {
-                start = cortex_m::peripheral::SYST::get_current();
+                start = now_micros();
             }
 
             // "If the sound waves hit an object and bounce back to the sensor,
             // the Echo pin goes LOW as soon as it detects this returning echo."
             // ... or until timeout at 38ms
-            let mut stop = cortex_m::peripheral::SYST::get_current();
+            let mut stop = now_micros();
             while self.echo_receiver.is_high().unwrap() {
-                stop = cortex_m::peripheral::SYST::get_current();
+                stop = now_micros();
             }
 
             // The echo pin is high while the pulse is in flight, until the echo returns.
             // Measure how long the echo pin was high
-            let dt = fugit::MicrosDurationU32::from_ticks(stop - start);
+            let dt = stop.wrapping_sub(start);
 
             // FIXME: check that we get time and not ticks
             self.calculate_distance(dt);
         }
 
-        fn calculate_distance(&mut self, t_waiting_for_echo: fugit::MicrosDurationU32) -> u32 {
+        fn calculate_distance(&mut self, t_waiting_for_echo_us: u32) -> u32 {
             // speed of sound in air 343 m/s; half speed of sound 171.5 m/s
 
             // 0.000_171_5 m/us
-            const HALF_SOS_CM_PER_US: f32 = 0.017_15; // 0.017_15_ cm/us
             const HALF_SOS_MM_PER_US: f32 = 0.171_5; // 0.171_5__ mm/us
-            // 171.5 um/us
-            // 171_500 nm/us
+                                                     // 171.5 um/us
+                                                     // 171_500 nm/us
 
             // K_speed * round trip time of flight = round trip distance
-            let measure: f32 = HALF_SOS_MM_PER_US * t_waiting_for_echo.to_micros() as f32;
+            let measure: f32 = HALF_SOS_MM_PER_US * t_waiting_for_echo_us as f32;
             self.last_read_mm = Some(measure as u32);
             return self.last_read_mm.unwrap();
         }

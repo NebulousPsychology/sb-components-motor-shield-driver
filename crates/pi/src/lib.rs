@@ -1,28 +1,16 @@
-// #![cfg_attr(not(feature = "std"), no_std)] // Use no_std if std feature is disabled
-
-#[cfg(not(all(
-    feature = "sbc-rpi",
-    feature = "std",
-    not(feature = "sbc-pico"),
-    any(target_arch = "arm", target_arch = "aarch64"),
-)))]
-compile_error!("sbc-rpi should not be defined for no-std environments or together with sbc-pico");
-
-//
-use crate::sbc_motor_shield;
-use fugit::RateExtU32;
 use rppal::gpio::{self, Gpio};
+use sb_components_motor_shield_core::components as sbc_motor_shield;
 
 #[derive(Debug)]
-struct POWError {}
-impl embedded_hal::pwm::Error for POWError {
+pub struct PwmOutputError;
+impl embedded_hal::pwm::Error for PwmOutputError {
     fn kind(&self) -> embedded_hal::pwm::ErrorKind {
         embedded_hal::pwm::ErrorKind::Other
     }
 }
 
-struct PwmOutputWrapper {
-    pub pin: gpio::OutputPin,
+pub struct PwmOutputWrapper {
+    pin: gpio::OutputPin,
     /// is specified in hertz (Hz).
     pub frequency: f64,
 }
@@ -33,12 +21,13 @@ impl embedded_hal::pwm::SetDutyCycle for PwmOutputWrapper {
 
     fn set_duty_cycle(&mut self, duty: u16) -> Result<(), Self::Error> {
         let duty_cycle: f64 = duty as f64 / self.max_duty_cycle() as f64;
-        self.pin.set_pwm_frequency(self.frequency, duty_cycle);
-        Ok(())
+        self.pin
+            .set_pwm_frequency(self.frequency, duty_cycle)
+            .map_err(|_| PwmOutputError)
     }
 }
 impl embedded_hal::pwm::ErrorType for PwmOutputWrapper {
-    type Error = POWError;
+    type Error = PwmOutputError;
 }
 impl PwmOutputWrapper {
     pub fn new(p: rppal::gpio::Pin, f: f64) -> Self {
@@ -49,7 +38,7 @@ impl PwmOutputWrapper {
     }
 }
 
-type RppalSbcBoard = crate::sbc_motor_shield::MotorShield<
+pub type RppalSbcBoard = sbc_motor_shield::MotorShield<
     gpio::InputPin,
     gpio::InputPin,
     //IR1, TIR2,
@@ -91,22 +80,11 @@ type RppalSbcBoard = crate::sbc_motor_shield::MotorShield<
 //     }
 // }
 
-pub fn create_rpi(gp: &Gpio) -> Result<RppalSbcBoard, rppal::gpio::Error> {
-    let motor_frequency: f64 = 50.0;
-    let max_duty: u16 = 100; // todo: confirm actual cycle
-                             // select pin/channels, according to rppal docs
-    #[cfg(feature = "rp5")]
-    let channels = (); //12,13,18,19
-    #[cfg(not(feature = "rp5"))]
-    let channels = (); // pwm0=12/18, pwm1=13/19
-                       // ! pwm pins (gpio.board) according to https://github.com/sbcshop/MotorShield/blob/master/PiMotor.py: 11,22,19,32(phys)
-
-    let x = gp.get(12).unwrap().into_output();
-    let (period, pulse_width) = (1u32, 2u32);
-    // x.set_pwm(period.millis(), pulse_width.millis()).unwrap();
-
-    let p0 = rppal::pwm::Pwm::new(rppal::pwm::Channel::Pwm0).unwrap();
-    let pwr = motor_driver_hal::PwmWrapper::new(p0, 100);
+#[derive(Debug)]
+pub enum CreateRpiError {
+    Gpio(gpio::Error),
+    Configuration(sbc_motor_shield::MotorShieldError),
+}
 
     // !! why we're not using motor_driver_hal's Rppal builders and wrappers !!
     // ! the reason it's so hard to coax rppal to configure pwm for a particular pin is that pwm pins are defined by the rpi pwm overlay config files of the sysfs interface
@@ -114,7 +92,13 @@ pub fn create_rpi(gp: &Gpio) -> Result<RppalSbcBoard, rppal::gpio::Error> {
     // https://docs.golemparts.com/rppal/0.20.0/rppal/pwm/
     // meanwhile, rpi.gpio uses software pwm : https://pypi.org/project/RPi.GPIO/
 
-    // TODO: streamline the api around duty and frequency
+impl From<gpio::Error> for CreateRpiError {
+    fn from(error: gpio::Error) -> Self {
+        Self::Gpio(error)
+    }
+}
+
+pub fn create_rpi(gp: &Gpio) -> Result<RppalSbcBoard, CreateRpiError> {
     let mfreq: f64 = 100.0;
     let duty = Some(100);
     let board: RppalSbcBoard = sbc_motor_shield::MotorShieldConfigurationBuilder::new()
@@ -147,10 +131,7 @@ pub fn create_rpi(gp: &Gpio) -> Result<RppalSbcBoard, rppal::gpio::Error> {
         )
         .with_ir1(gp.get(4)?.into_input_pullup())
         .with_ir2(gp.get(18)?.into_input_pullup())
-        .with_sonic(
-            gp.get(5).unwrap().into_output(),
-            gp.get(6).unwrap().into_input(),
-        )
+        .with_sonic(gp.get(5)?.into_output(), gp.get(6)?.into_input())
         .with_lights(
             gp.get(26)?.into_output_low(), //f
             gp.get(13)?.into_output_low(), //b
@@ -158,7 +139,7 @@ pub fn create_rpi(gp: &Gpio) -> Result<RppalSbcBoard, rppal::gpio::Error> {
             gp.get(16)?.into_output_low(), //r
         )
         .build()
-        .map_err(|e| rppal::gpio::Error::UnknownModel)?;
+        .map_err(CreateRpiError::Configuration)?;
     // ! alt sonic 38 in (or 8); 40 out (or 10)
     //       pins 8,10,38,40 are unused
 

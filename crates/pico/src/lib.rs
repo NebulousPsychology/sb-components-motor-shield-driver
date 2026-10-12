@@ -1,8 +1,4 @@
-#[cfg(feature = "std")] // Use no_std if std feature is disabled
-compile_error!("pico should not be defined for std environments");
-
-#[cfg(feature = "rp-pico")]
-use crate::components;
+use sb_components_motor_shield_core::components;
 
 pub type PicoGeeekpiSbcShield = components::MotorShield<
     rp_pico::hal::gpio::Pin<
